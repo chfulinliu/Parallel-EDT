@@ -20,12 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="edt.h" />
-    <ClInclude Include="edt_mine.cuh" />
-    <ClInclude Include="edt_mine_impl.cuh" />
+    <ClInclude Include="edt_kernels.cuh" />
+    <ClInclude Include="edt_kernels_impl.cuh" />
     <ClInclude Include="SimpleTimer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="test.cpp" />
+    <ClCompile Include="demo.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{63ACE658-98B6-4AC9-A2B8-572107F00A89}</ProjectGuid>

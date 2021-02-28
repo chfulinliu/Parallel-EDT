@@ -1,8 +1,36 @@
-//by fulin.liu@hotmail.com
+/*
+Author: Fulin Liu (fulin.liu@hotmail.com)
+
+File Name: edt.cu
+
+============================================================================
+MIT License
+
+Copyright(c) 2021 Fulin Liu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this softwareand associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright noticeand this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 #include <cuda_runtime.h>
 #include <algorithm>
 #include "edt.h"
-#include "edt_mine.cuh"
+#include "edt_kernels.cuh"
 
 
 #ifndef __CUDACC__
@@ -14,43 +42,44 @@
 
 
 template<int den>
-constexpr int div_ceil(int num) {
+static constexpr int div_ceil(int num) {
     static_assert(den > 0, "Den <=0 ");
     return (num + den - 1) / den;
 }
 
-int div_ceil(int num, int den) {
+static int div_ceil(int num, int den) {
     return (num + den - 1) / den;
 }
 
 template<int grain>
-constexpr int rnd_up(int val) {
+static constexpr int rnd_up(int val) {
     static_assert(grain > 0, "Grain <= 0");
     return (val + grain - 1) / grain * grain;
 }
 
-constexpr int rnd_up(int val, int grain) {
+static constexpr int rnd_up(int val, int grain) {
     return (val + grain - 1) / grain * grain;
 }
 
 template<int grain>
-constexpr int rnd_down(int val) {
+static constexpr int rnd_down(int val) {
     static_assert(grain > 0, "Grain <= 0");
     return val / grain * grain;
 }
 
-constexpr int rnd_down(int val, int grain) {
+static constexpr int rnd_down(int val, int grain) {
     return val / grain * grain;
 }
+
 template<typename T>
-void reallocDev(T& ptr, size_t newSz) {
+static void reallocDev(T& ptr, size_t newSz) {
     if (ptr)
         cudaFree(ptr);
     cudaMalloc(&ptr, newSz);
 }
 
 template<typename T>
-void freeDev(T& ptr) {
+static void freeDev(T& ptr) {
     if (ptr) {
         cudaFree(ptr);
         ptr = nullptr;
@@ -75,12 +104,12 @@ void edt::setup(int width, int height) {
     cudaGetDevice(&dev);
     cudaGetDeviceProperties(&devProp, dev);
     // buf sizes are aligned to 32, but we do not stick to this alignment in following process
- 
+
     bufWidth = rnd_up<32>(width);
     bufHeight = rnd_up<32>(height);
 
-    wideInputThreshold = devProp.sharedMemPerBlock / sizeof(idx2_t);
-    highInputThreshold = devProp.sharedMemPerBlock / sizeof(idx2_t);
+    wideInputThreshold = int(devProp.sharedMemPerBlock / sizeof(idx2_t));
+    highInputThreshold = int(devProp.sharedMemPerBlock / sizeof(idx2_t));
 
     size_t bufPixCnt = size_t(bufWidth) * bufHeight;
     reallocDev(rowSites_dev, bufPixCnt * sizeof(idx_t));
@@ -179,7 +208,7 @@ void edt::find1DSites_wide(const char* input_dev, int inputStride) {
 
 void edt::makeStacks(int initialStackSize) {
     constexpr int tileSize = 32;    // this value must be same as TS in cuda kernal function
-    dim3 createBlkDim(tileSize, tileSize/ initialStackSize);
+    dim3 createBlkDim(tileSize, tileSize / initialStackSize);
     dim3 createGrdDim(std::max(1, div_ceil<tileSize>(inputWidth)), std::max(1, div_ceil<tileSize>(inputHeight)));
     // Merging row stacks is much slower than merging column stacks. So we create and merge column stacks and then transpose it.
     /*
@@ -259,6 +288,5 @@ void edt::writeDistance(float* distance, int distStride) {
     dim3 blkDim(16, 16);
     dim3 grdDim(std::max(1, div_ceil<16>(inputHeight)), std::max(1, div_ceil<16>(inputWidth)));
     edt_writeDistance cudaExecCFG(grdDim, blkDim, 0, st) (stkNodeTr_closest2dTr_dev, closestTrStride, distance, distStride, inputWidth, inputHeight);
-
 }
 

@@ -1,4 +1,34 @@
-#include "edt_mine_impl.cuh"
+/*
+Author: Fulin Liu (fulin.liu@hotmail.com)
+
+File Name: edt_findClosest1D.cu
+
+============================================================================
+MIT License
+
+Copyright(c) 2021 Fulin Liu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this softwareand associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright noticeand this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+
+#include "edt_kernels_impl.cuh"
 
 
 __device__ inline short2 edt_findClosestLR_core32(int val, int pred) {
@@ -103,7 +133,7 @@ __global__ void edt_findClosest1D_narrow(const char* _input, int inStride, idx_t
 	if (lane == 0)
 		sharedLR[threadIdx.x / WARP_SIZE].y = closestLR.y;
 	__syncthreads();
-	if (threadIdx.x < warpSize)
+	if (threadIdx.x < WARP_SIZE)
 		sharedLR[threadIdx.x] = edt_findClosestLR_core32(sharedLR[threadIdx.x]);
 	__syncthreads();
 	int sIdx = threadIdx.x / WARP_SIZE;

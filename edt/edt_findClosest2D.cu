@@ -1,4 +1,34 @@
-#include "edt_mine_impl.cuh"
+/*
+Author: Fulin Liu (fulin.liu@hotmail.com)
+
+File Name: edt_findClosest2D.cu
+
+============================================================================
+MIT License
+
+Copyright(c) 2021 Fulin Liu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this softwareand associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright noticeand this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+
+#include "edt_kernels_impl.cuh"
 
 __device__ inline int ybscross(int xa, int ya, int xb, int yb, int x) {
 	int xbma = xb - xa;
@@ -76,7 +106,7 @@ __global__ void edt_findClosest2D_low(idx2_t* in_nodes_out_closest, int nodeStri
 		shared_right[threadIdx.x / WARP_SIZE] = closest_index_right;
 	__syncthreads();
 
-	if (threadIdx.x < warpSize) {
+	if (threadIdx.x < WARP_SIZE) {
 		int x_right = shared_right[threadIdx.x];
 		int voted_x_right = __ballot_sync(FULL_MASK, x_right != -1);
 		masked_x_right = mask_right & voted_x_right;
