@@ -1,5 +1,5 @@
 /*
-Author: Fulin Liu (fulin.liu@hotmail.com)
+Author: Fulin Liu 
 
 File Name: edt_findClosest2D.cu
 

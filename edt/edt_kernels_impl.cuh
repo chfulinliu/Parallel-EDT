@@ -1,5 +1,5 @@
 /*
-Author: Fulin Liu (fulin.liu@hotmail.com)
+Author: Fulin Liu 
 
 File Name: edt_kernels_impl.cuh
 
@@ -84,8 +84,8 @@ dim3 blockDim, blockIdx, threadIdx;
 /*
 * INVALID_NODE_PTR_NO_SITE and INVALID_NODE_PTR_IS_SITE can be arbitrarily chosen from negative short numbers, as long as they are not equal.
 */
-//#define INVALID_NODE_PTR_NO_SITE (-2)
-#define INVALID_NODE_PTR_NO_SITE SHRT_MIN
+
+#define INVALID_NODE_PTR_NO_SITE (-2)
 #define INVALID_NODE_PTR_IS_SITE (-1)
 #define IS_PTR_INVALID(a) ((a)<0)
 #define IS_PTR_VALID(a) ((a)>=0)

@@ -1,5 +1,5 @@
 /*
-Author: Fulin Liu (fulin.liu@hotmail.com)
+Author: Fulin Liu 
 
 File Name: demo.cpp
 
@@ -55,15 +55,13 @@ int main(int argc, char** argv) {
     char* input_dev, * input_host;
     cudaMalloc(&input_dev, maxLen);
     cudaMallocHost(&input_host, maxLen);
-    edt::idx2_t* closest_idx_dev, * closest_idx_host;
+    edt::idx2_t* closest_idx_dev;
     cudaMalloc(&closest_idx_dev, maxLen * sizeof(edt::idx2_t));
-    cudaMallocHost(&closest_idx_host, maxLen * sizeof(edt::idx2_t));
 
     float* dist_dev, * dist_host;
-    short2* nodes_host;
+
     cudaMalloc(&dist_dev, maxLen * sizeof(float));
     cudaMallocHost(&dist_host, maxLen * sizeof(float));
-    cudaMallocHost(&nodes_host, maxLen * sizeof(short2));
 
     cudaStream_t st;
     cudaStreamCreate(&st);
@@ -73,8 +71,8 @@ int main(int argc, char** argv) {
     edt dt;
     dt.setup(maxWidth, maxHeight);
     for (int i = 0; i < 100; ++i) {
-        int width = e() % maxWidth;
-        int height = e() % maxHeight;
+        int width = e() % (maxWidth - 1) + 1;
+        int height = e() % (maxHeight - 1) + 1;
         std::cout << "W: " << width << ", H: " << height << '\n';
         size_t cpyLen = width * height;
         cv::Mat src(height, width, CV_8UC1);
@@ -91,7 +89,6 @@ int main(int argc, char** argv) {
         cudaEventRecord(eBegin, st);
         dt.transform(input_dev, inputStride, closest_idx_dev, closestStride, dist_dev, distStride, width, height, st);
         cudaEventRecord(eEnd, st);
-        cudaMemcpyAsync(closest_idx_host, closest_idx_dev, cpyLen * sizeof(edt::idx2_t), cudaMemcpyDeviceToHost, st);
         cudaMemcpyAsync(dist_host, dist_dev, cpyLen * sizeof(float), cudaMemcpyDeviceToHost, st);
         cudaStreamSynchronize(st);
         float ms;
@@ -102,15 +99,11 @@ int main(int argc, char** argv) {
         cv::Mat dist(height, width, CV_32FC1, dist_host);
         cv::minMaxIdx(dist, &minDist, &maxDist);
         cv::Mat normedDist = dist / maxDist;
-        cv::Mat idx(height, width, CV_16SC2, closest_idx_host);
         cv::imshow("res", normedDist);
         int key = cv::waitKey(0);
         if (key == 27)
             break;
     }
-
-    cudaFree(closest_idx_dev);
-    cudaFree(dist_dev);
     return 0;
 }
 
