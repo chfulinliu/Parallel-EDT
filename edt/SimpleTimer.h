@@ -27,8 +27,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #pragma once
-#include <Windows.h>
 #ifdef _WIN32
+#include <Windows.h>
 namespace fl {
 	class Timer {
 		LARGE_INTEGER _begin;

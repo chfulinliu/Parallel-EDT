@@ -1,5 +1,5 @@
 /*
-Author: Fulin Liu 
+Author: Fulin Liu (fulin.liu@hotmail.com)
 
 File Name: edt_findClosest2D.cu
 
@@ -247,9 +247,10 @@ __global__ void edt_findClosest2D_middle(idx2_t* in_nodes_out_closest, int nodeS
 		int index = threadIdx.x + bias;
 		if (index < bundleWidth) {
 			int src_idx_right_side = (index & 0xFFFFFFE0) + 32;
-			if (src_idx_right_side < bundleWidth && closestRight[index] == -1)
-				closestRight[index] = closestRight[src_idx_right_side];
-			bundle[index] = closestRight[index];
+			int c = closestRight[index];
+			if (src_idx_right_side < bundleWidth && c == -1)
+				c = closestRight[src_idx_right_side];
+			bundle[index] = c;
 		}
 	}
 }
@@ -362,14 +363,13 @@ __global__ void edt_findClosest2D_high(idx2_t* in_nodes_out_closest, int nodeStr
 		int index = threadIdx.x + bias;
 		if (index < bundleWidth) {
 			int src_idx_right_side = (index & 0xFFFFFFE0) + 32;
-			if (src_idx_right_side < bundleWidth && psClosestR[index] == -1)
-				psClosestR[index] = psClosestR[src_idx_right_side];
-			int x = -1;
 			int y = psClosestR[index];
+			if (src_idx_right_side < bundleWidth && y == -1)
+				y = psClosestR[src_idx_right_side];
+			int x = -1;
 			if (y >= 0)
 				x = *ptrAt(y, site_col, sites, siteStride);
-			pLeftNode[index].x = x;
-			pLeftNode[index].y = y;
+			pLeftNode[index] = make_short2(x, y);
 		}
 	}
 }
