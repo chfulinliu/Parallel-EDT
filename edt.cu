@@ -161,7 +161,7 @@ void edt::prepareInternalVariables(int width, int height, cudaStream_t _st) {
 void edt::findClosest(const char* input_dev, int inputStride) {
     if (inputWidth > wideInputThreshold)
         find1DSites_wide(input_dev, inputStride);
-    else if (inputWidth > 0)
+    else if (inputWidth > 256)
         find1DSites_middle(input_dev, inputStride);
     else
         find1DSites_narrow(input_dev, inputStride);
@@ -170,7 +170,7 @@ void edt::findClosest(const char* input_dev, int inputStride) {
 
     if (inputHeight > highInputThreshold)
         find2DSites_high();
-    else if (inputHeight > 0)
+    else if (inputHeight > 128)
         find2DSites_middle();
     else
         find2DSites_low();
