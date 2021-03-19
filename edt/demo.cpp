@@ -48,8 +48,8 @@ void randPoints(cv::Mat src, float ratio) {
 }
 
 int main(int argc, char** argv) {
-    int maxWidth = 256;
-    int maxHeight = 128;
+    int maxWidth = 2560;
+    int maxHeight = 1280;
 
     size_t maxLen = maxWidth * maxHeight;
     char* input_dev, * input_host;

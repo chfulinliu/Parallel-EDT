@@ -113,13 +113,8 @@ __global__ void edt_creatColStacks(const idx_t* closestPerRow, int closestPerRow
 		// the first valid node is not nodes[0][threadIdx.x], update the head of the stack
 		if (last_y != 0)
 			nodes[0][threadIdx.x] = make_short2(last_y, INVALID_NODE_PTR_NO_SITE);
-	}
-	// The stack is a double linked list, values stored in each node serve as pointers to previous(node.y) or next(node.x) nodes, negative value is invalid pointer value
-	// the pointers stored in the list also indicate the validity of corresponding node, if any of the pointer stored in a node is INVALID_NODE_PTR_NO_SITE, the node is invalid (dominated by other nodes)
-	__syncthreads();
-	//return;
-	if (x < srcImgWidth && rowIdxLimit > 0) {
-		stk_node_t(*nodes)[BW] = stk_node_buf + threadIdx.y * maxStkSz;
+		// The stack is a double linked list, values stored in each node serve as pointers to previous(node.y) or next(node.x) nodes, negative value is invalid pointer value
+		// the pointers stored in the list also indicate the validity of corresponding node, if any of the pointer stored in a node is INVALID_NODE_PTR_NO_SITE, the node is invalid (dominated by other nodes)
 		stk_node_t* pDst = ptrAt(y_begin, x, stk_nodes, stk_node_stride);
 		for (int rb = 0; rb < rowIdxLimit; ++rb) {
 			stk_node_t n = nodes[rb][threadIdx.x];
