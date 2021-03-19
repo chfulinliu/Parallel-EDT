@@ -167,6 +167,7 @@ __global__ void edt_findClosest2D_middle(idx2_t* in_nodes_out_closest, int nodeS
 					domiIdx = ybscross(myx, myy, nxtx, nxty, site_col);
 				}
 				if (domiIdx >= srcImgHeight) {
+					stk_node_t oldLstSite = lstSite;
 					lstSite = make_short2(myx, myy);
 					if (node.y > 0) // have previous site
 					{
@@ -174,7 +175,7 @@ __global__ void edt_findClosest2D_middle(idx2_t* in_nodes_out_closest, int nodeS
 						int prevy = node.y;
 						int prevDomiIdx = ybscross(myx, myy, prevx, prevy, site_col);
 						if (prevDomiIdx >= srcImgHeight)
-							lstSite = make_short2(-1, -1);
+							lstSite = oldLstSite;
 					}
 				}
 				else if (domiIdx >= 0)
@@ -267,7 +268,7 @@ __global__ void edt_findClosest2D_high(idx2_t* in_nodes_out_closest, int nodeStr
 		}
 	}
 	__syncthreads();
-	stk_node_t lstSite{ -1,-1 };
+	idx_t lstSite_y = -1;
 	for (int bias = 0; bias < srcImgHeight; bias += blockDim.x) {
 		int node_col = threadIdx.x + bias;
 		const int site_row = node_col;
@@ -285,14 +286,15 @@ __global__ void edt_findClosest2D_high(idx2_t* in_nodes_out_closest, int nodeStr
 					domiIdx = ybscross(myx, myy, nxtx, nxty, site_col);
 				}
 				if (domiIdx >= srcImgHeight) {
-					lstSite = make_short2(myx, myy);
+					idx_t oldLstSite_y = lstSite_y;
+					lstSite_y = myy;
 					if (node.y > 0) // have previous site
 					{
 						int prevx = *ptrAt(node.y, site_col, sites, siteStride);
 						int prevy = node.y;
 						int prevDomiIdx = ybscross(myx, myy, prevx, prevy, site_col);
 						if (prevDomiIdx >= srcImgHeight)
-							lstSite = make_short2(-1, -1);
+							lstSite_y = oldLstSite_y;
 					}
 				}
 				else if (domiIdx >= 0)
@@ -303,8 +305,8 @@ __global__ void edt_findClosest2D_high(idx2_t* in_nodes_out_closest, int nodeStr
 		}
 	}
 	__syncthreads();
-	if (lstSite.y != -1 && psClosestR[srcImgHeight - 1] < 0)
-		psClosestR[srcImgHeight - 1] = lstSite.y;
+	if (lstSite_y != -1 && psClosestR[srcImgHeight - 1] < 0)
+		psClosestR[srcImgHeight - 1] = lstSite_y;
 	__syncthreads();
 	const int bundleWidth = srcImgHeight;
 	for (int bias = 0; bias < bundleWidth; bias += blockDim.x) {
